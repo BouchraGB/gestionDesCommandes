@@ -8,7 +8,7 @@ import 'database.dart';
 class AddProduct extends StatelessWidget {
 
 
-final items = SQLiteDbProvider.db.getAllProducts();
+
 
 
   //hna ndefiniw widget w houwa l'interface li ychoufha l user
@@ -39,12 +39,22 @@ final items = SQLiteDbProvider.db.getAllProducts();
               children: [
                 TextFormField(
                   decoration: InputDecoration(
+                    labelText: 'ID du produit'
+                  ),
+                ),
+                TextFormField(
+                  decoration: InputDecoration(
                     labelText: 'Titre du produit'
                   ),
                 ),
                 TextFormField(
                   decoration: InputDecoration(
                     labelText: 'Prix du produit'
+                  ),
+                ),
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Description'
                   ),
                 ),
 
@@ -55,7 +65,7 @@ final items = SQLiteDbProvider.db.getAllProducts();
                 Text("hnaa", style: TextStyle(fontSize: 20,color: Colors.black)),
 
               RaisedButton(
-                onPressed: () {print('Console Message Using Debug Print'); SQLiteDbProvider.db.getAllProducts(); },
+                onPressed: () {print('Console Message Using Debug Print');  },
                 textColor: Colors.white,
                 
                 

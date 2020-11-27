@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gestion_commandes/addProduct.dart';
-import 'afficherTest.dart';
+
 // import 'package:gestion_commandes/dataBase.dart';
 
 //on defini la classe de cette page :
@@ -112,7 +112,7 @@ class Home extends StatelessWidget {
                 child: FloatingActionButton(
                   heroTag: "btn1",
                   
-                onPressed: (){Navigator.push( context, MaterialPageRoute(builder: (context) => DBTestPage()),); },
+                onPressed: (){ },
                         
                         child: Icon(Icons.note_add),
             ),

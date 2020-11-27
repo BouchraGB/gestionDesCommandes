@@ -1,88 +1,135 @@
-import 'dart:async'; 
-import 'dart:io'; 
-import 'package:path/path.dart'; 
-import 'package:path_provider/path_provider.dart'; 
-import 'package:sqflite/sqflite.dart'; 
-import 'produit.dart';
+import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:async';
+import 'dart:io';
+import 'model/model.dart';
 
-class SQLiteDbProvider { 
-   SQLiteDbProvider._(); 
-   static final SQLiteDbProvider db = SQLiteDbProvider._(); 
-   static Database _database; 
-
-   Future<Database> get database async { 
-   if (_database != null) 
-   return _database; 
-   _database = await initDB(); 
-   return _database; 
-}
-initDB() async { 
-   Directory documentsDirectory = await getApplicationDocumentsDirectory(); 
-   String path = join(documentsDirectory.path, "CommandesDB.db"); 
-   return await openDatabase(
-      path, 
-      version: 1,
-      onOpen: (db) {}, 
-      onCreate: (Database db, int version) async {
-         await db.execute(
-            "CREATE TABLE produitsss (id INTEGER PRIMARY KEY, titre TEXT, prix INTEGER)"
-         ); 
-         await db.execute(
-            "INSERT INTO produits ('id', 'name', 'prix') values (?, ?, ?)", 
-            [1, "chapeau simple", 600]
-         ); 
-         await db.execute(
-            "INSERT INTO produits ('id', 'name', 'prix') values (?, ?, ?)", 
-            [2, "chapeau personnalise", 700]
-         );
-      }
-   ); 
-}
-
-void getAllProducts() async { 
-   final db = await database; 
-   List<Map> 
-   results = await db.query("produits", columns: Produit.columns, orderBy: "id ASC"); 
-   
-   List<Produit> products = new List(); 
-   results.forEach((result) { 
-     
-      Produit product = Produit.fromMap(result); 
-      print("hhh"+product.titre);
-      print("hhh"+product.prix.toString());
-      products.add(product); 
-   }); 
-  //  return products; 
-}
+class DbHelper {
+  
+  // Tables
+  static String tblProduits = "produits";
+  static String tblCommandes = "commandes";
 
 
-Future<Produit> getProductById(int id) async {
-   final db = await database; 
-   var result = await db.query("produits", where: "id = ", whereArgs: [id]); 
-   return result.isNotEmpty ? Produit.fromMap(result.first) : Null; 
-}
+  // Fields of the 'produits' table :
+  String idProduit = "idProduit";
+  String titreProduit = "titreProduit";
+  String prixProduit = "prixProduit";
+  String descriptionProduit = "descriptionProduit";
 
-insert(Produit product) async { 
-   final db = await database; 
-   var maxIdResult = await db.rawQuery(
-      "SELECT MAX(id)+1 as last_inserted_id FROM produits");
 
-   var id = maxIdResult.first["last_inserted_id"]; 
-   var result = await db.rawInsert(
-      "INSERT Into produits (id, titre,prix)" 
-      " VALUES (?, ?, ?)", 
-      [id, product.titre, product.prix] 
-   ); 
-   return result; 
-}
-update(Produit product) async { 
-   final db = await database; 
-   var result = await db.update("produits", product.toMap(), 
-   where: "id = ?", whereArgs: [product.id]); return result; 
-} 
-delete(int id) async { 
-   final db = await database; 
-   db.delete("produits", where: "id = ?", whereArgs: [id]); 
-}
+  // Fields of the 'commandes' table :
+  String idCommande = "idCommande";
+  String numTel = "numTel";
+  String nomClient = "nomClient";
+  String dateTime = "dateTime";
+  String livraison = "livraison";
+  String descriptionCommande = "descriptionCommande";
 
+
+
+  static final DbHelper _dbHelper = DbHelper._internal();
+
+  DbHelper._internal();
+
+  factory DbHelper() {
+    return _dbHelper;
+  }
+
+  static Database _db;
+
+  Future<Database> get db async {
+    if (_db == null) {
+      _db = await initializeDb();
+    }
+    return _db;
+  }
+
+  Future<Database> initializeDb() async {
+    Directory d = await getApplicationDocumentsDirectory();
+    String p = d.path + "/gestionCommandes.db";
+    var db = await openDatabase(p, version: 1, onCreate: _createDb);
+    return db;
+  }
+
+  // Create database table
+  void _createDb(Database db, int version) async {
+    await db.execute(
+        "CREATE TABLE $tblProduits($idProduit INTEGER PRIMARY KEY, $titreProduit TEXT, " +
+            "$prixProduit INTEGER, " +
+            "$descriptionProduit TEXT, )");
+  }
+
+  Future<int> insertProduct(Produit produit) async {
+    var r;
+    Database db = await this.db;
+    try {
+      r = await db.insert(tblProduits, produit.toMap());
+    } catch (e) {
+      debugPrint("insertDoc: " + e.toString());
+    }
+    return r;
+  }
+
+  Future<List> getProducts() async {
+    Database db = await this.db;
+    var r =
+        await db.rawQuery("SELECT * FROM $tblProduits ORDER BY $titreProduit ASC");
+    return r;
+  }
+
+  Future<List> getProduct(int id) async {
+    Database db = await this.db;
+    var r = await db.rawQuery(
+        "SELECT * FROM $tblProduits WHERE $idProduit = " + id.toString() + "");
+    return r;
+  }
+
+  // Future<List> getDocFromStr(String payload) async {
+  //   List<String> p = payload.split("|");
+  //   if (p.length == 2) {
+  //     Database db = await this.db;
+  //     var r = await db.rawQuery("SELECT * FROM $tblDocs WHERE $docId = " +
+  //         p[0] +
+  //         " AND $docExpiration = '" +
+  //         p[1] +
+  //         "'");
+  //     return r;
+  //   } else
+  //     return null;
+  // }
+
+  // Future<int> getDocsCount() async {
+  //   Database db = await this.db;
+  //   var r = Sqflite.firstIntValue(
+  //       await db.rawQuery("SELECT COUNT(*) FROM $tblDocs"));
+  //   return r;
+  // }
+
+  // Future<int> getMaxId() async {
+  //   Database db = await this.db;
+  //   var r = Sqflite.firstIntValue(
+  //       await db.rawQuery("SELECT MAX(id) FROM $tblDocs"));
+  //   return r;
+  // }
+
+  // Future<int> updateDoc(Doc doc) async {
+  //   var db = await this.db;
+  //   var r = await db
+  //       .update(tblDocs, doc.toMap(), where: "$docId = ?", whereArgs: [doc.id]);
+  //   return r;
+  // }
+
+  Future<int> deleteProduct(int id) async {
+    var db = await this.db;
+    int r = await db.rawDelete("DELETE FROM $tblProduits WHERE $idProduit = $id");
+    return r;
+  }
+
+  // Future<int> deleteRows(String tbl) async {
+  //   var db = await this.db;
+  //   int r = await db.rawDelete("DELETE FROM $tbl");
+  //   return r;
+  // }
 }
