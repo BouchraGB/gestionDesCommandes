@@ -16,32 +16,49 @@ class DbHelper {
   String titreProduit = "titreProduit";
   String prixProduit = "prixProduit";
   String descriptionProduit = "descriptionProduit";
+  String image = "image";
 
   // Fields of the 'commande' table :
   String idCommande = "idCommande";
   String numTel = "numTel";
   String nomClient = "nomClient";
   String dateTime = "dateTime";
+  String heure = "heure";
   String livraison = "livraison";
+  String lieu = "lieu";
+  String etat = "etat";
+  //etat = 0(pas encore) // 1(preparee) // 2(livree) // 3(anulee)
   String descriptionCommande = "descriptionCommande";
 
   // Fields of the 'produitcommande' table :
   String idProduitCommande = "idProduitCommande";
-  String titreProduitCommande = "titreProduitCommande";
-  String quantite = "quantite";
+  // String titreProduitCommande = "titreProduitCommande";
+  // String quantite = "quantite";
   String idCommandep = "idCommandep";
   String idProduitp = "idProduitp";
+  String description = "description";
 
+  //////////////////
+  String tblImg = "images";
+  String idImg = "idImage";
+  String nameImg = "nameImage";
+
+
+  //
   static final DbHelper _dbHelper = DbHelper._internal();
 
   DbHelper._internal();
 
+
+  //Constructeur
   factory DbHelper() {
     return _dbHelper;
   }
 
   static Database _db;
 
+
+  //recuperer la base de donnees
   Future<Database> get db async {
     if (_db == null) {
       _db = await initializeDb();
@@ -49,6 +66,7 @@ class DbHelper {
     return _db;
   }
 
+  //creation de la bd
   Future<Database> initializeDb() async {
     Directory d = await getApplicationDocumentsDirectory();
     String p = d.path + "/gestionCommandes.db";
@@ -59,20 +77,27 @@ class DbHelper {
   // Create database table
   void _createDb(Database db, int version) async {
     await db.execute(
-        "CREATE TABLE $tblProduit($idProduit INTEGER PRIMARY KEY, $titreProduit TEXT, " +
+        "CREATE TABLE $tblProduit($idProduit INTEGER PRIMARY KEY AUTOINCREMENT , $titreProduit TEXT, " +
             "$prixProduit INTEGER, " +
-            "$descriptionProduit TEXT, )");
+            "$descriptionProduit TEXT,"+
+            "$image TEXT )");
     await db.execute(
-        "CREATE TABLE $tblCommande($idCommande INTEGER PRIMARY KEY, $numTel INTEGER, " +
+        "CREATE TABLE $tblCommande($idCommande INTEGER PRIMARY KEY AUTOINCREMENT , $numTel INTEGER, " +
             "$nomClient TEXT, " +
             "$dateTime TEXT, " +
+            "$heure TEXT, " +
             "$livraison INTEGER, " +
-            "$descriptionCommande TEXT, )");
+            "$lieu TEXT, " +
+            "$etat INTEGER, "+
+            "$descriptionCommande TEXT )");
     await db.execute(
-        "CREATE TABLE $tblProduitCommande($idProduitCommande INTEGER PRIMARY KEY, $titreProduitCommande TEXT, " +
-            "$quantite INTEGER, " +
+        "CREATE TABLE $tblProduitCommande(" +
+            "$idProduitCommande INTEGER PRIMARY KEY AUTOINCREMENT, " +
             "$idCommandep INTEGER, " +
-            "$idProduitp INTEGER, )");
+            "$idProduitp INTEGER ," +
+            "$description TEXT )");
+
+    // await db.execute("CREATE TABLE $tblImg ($idImg INTEGER, $nameImg TEXT)");
   }
 /////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////
@@ -182,6 +207,20 @@ class DbHelper {
     return r;
   }
 
+
+    Future<int> updateEtatCommande(int id, int etat) async {
+    Database db = await this.db;
+
+    // row to update
+    Map<String, dynamic> row = {
+      this.etat : etat,
+    };
+
+    var r = await db.update(tblCommande, row,
+        where: "$idCommande = ?", whereArgs: [id]);
+    return r;
+  }
+
   Future<int> updateCommande(Commande commande) async {
     var db = await this.db;
     var r = await db.update(tblCommande, commande.toMap(),
@@ -217,14 +256,14 @@ class DbHelper {
   Future<List> getProduitCommandes() async {
     Database db = await this.db;
     var r = await db.rawQuery(
-        "SELECT * FROM $tblProduitCommande ORDER BY $titreProduitCommande ASC");
+        "SELECT * FROM $tblProduitCommande ORDER BY $idCommandep ASC");
     return r;
   }
 
   Future<List> getProduitCommande(int id) async {
     Database db = await this.db;
     var r = await db.rawQuery(
-        "SELECT * FROM $tblProduitCommande WHERE $idProduitCommande = " +
+        "SELECT * FROM $tblProduitCommande WHERE $idCommandep = " +
             id.toString() +
             "");
     return r;
@@ -244,18 +283,18 @@ class DbHelper {
     return r;
   }
 
-  Future<int> updateProduitCommande(ProduitCommande produitCommande) async {
-    var db = await this.db;
-    var r = await db.update(tblProduitCommande, produitCommande.toMap(),
-        where: "$idProduitCommande = ?",
-        whereArgs: [produitCommande.idProduitCommande]);
-    return r;
-  }
+  // Future<int> updateProduitCommande(ProduitCommande produitCommande) async {
+  //   var db = await this.db;
+  //   var r = await db.update(tblProduitCommande, produitCommande.toMap(),
+  //       where: "$idProduitCommande = ?",
+  //       whereArgs: [produitCommande.idProduitCommande]);
+  //   return r;
+  // }
 
-  Future<int> deleteProduitCommande(int id) async {
+  Future<int> deleteProduitCommande(int idc, int idp) async {
     var db = await this.db;
     int r = await db.rawDelete(
-        "DELETE FROM $tblProduitCommande WHERE $idProduitCommande = $id");
+        "DELETE FROM $tblProduitCommande WHERE $idCommandep= $idc and $idProduitp = $idp");
     return r;
   }
 
@@ -272,4 +311,36 @@ class DbHelper {
     int r = await db.rawDelete("DELETE FROM $tbl");
     return r;
   }
+
+
+
+
+  ///////////////////////////////////////////////////////
+  ///
+  ///
+  ///
+  ///
+  ///
+  ///
+  
+   Future<Photo> save(Photo image) async {
+    var bdd = await db;
+    image.idImage = await bdd.insert(tblImg, image.toMap());
+    return image;
+  }
+
+
+  Future<List<Photo>> getPhotos() async {
+    var bdd = await db;
+    List<Map> maps = await bdd.query(tblImg, columns: [idImg, nameImg]);
+    List<Photo> mesImages = [];
+    if (maps.length > 0) {
+      for (int i = 0; i < maps.length; i++) {
+        mesImages.add(Photo.fromMap(maps[i]));
+      }
+    }
+    return mesImages;
+  }
+   
 }
+

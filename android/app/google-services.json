@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "733714060658",
+    "project_id": "gestiondescommandes-58d30",
+    "storage_bucket": "gestiondescommandes-58d30.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:733714060658:android:a2ea96e4e87c0b59c6f9eb",
+        "android_client_info": {
+          "package_name": "com.example.gestion_commandes"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "733714060658-f76p7djltq9s5sm04v8l9dm6c5o2g6j6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMdBL81LNwmfKMaeVkubZoeV81BgyDzzY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "733714060658-f76p7djltq9s5sm04v8l9dm6c5o2g6j6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
